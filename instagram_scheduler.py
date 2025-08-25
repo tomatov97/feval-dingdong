@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timedelta
 from instagram_crawler import InstagramCrawler
 from data_manager import DataManager
+from config import Config
 
 class InstagramScheduler:
     def __init__(self, accounts=None, interval_hours=24):
@@ -72,7 +73,7 @@ class InstagramScheduler:
         try:
             self.logger.info(f"계정 {username} 크롤링 시작")
             
-            with InstagramCrawler(headless=True) as crawler:
+            with InstagramCrawler(headless=Config.HEADLESS_MODE) as crawler:
                 result = crawler.crawl_account(username)
                 
                 if result:

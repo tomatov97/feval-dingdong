@@ -36,6 +36,8 @@ def main():
     parser.add_argument('--backup', action='store_true', help='데이터베이스 백업')
     parser.add_argument('--restore', help='백업 파일에서 데이터베이스 복원')
     parser.add_argument('--db-info', action='store_true', help='데이터베이스 정보 조회')
+    parser.add_argument('--db-init', action='store_true', help='데이터베이스 초기화 (모든 데이터 삭제)')
+    parser.add_argument('--db-reset', action='store_true', help='데이터베이스 완전 초기화 (백업 후 모든 데이터 삭제)')
     parser.add_argument('--new-posts', help='특정 계정의 새 게시물 수 조회 (기본값: 7일)')
     parser.add_argument('--latest-posts', help='특정 계정의 최신 게시물 조회')
     
@@ -140,6 +142,32 @@ def main():
                     print(f"  - {table}: {count}개")
             return
             
+        # 데이터베이스 초기화 (데이터만 삭제)
+        if args.db_init:
+            print("⚠️  경고: 모든 데이터가 삭제됩니다!")
+            confirm = input("정말로 진행하시겠습니까? (yes/no): ")
+            if confirm.lower() == 'yes':
+                if scheduler.data_manager.initialize_database():
+                    print("데이터베이스 초기화 완료")
+                else:
+                    print("데이터베이스 초기화 실패")
+            else:
+                print("초기화가 취소되었습니다.")
+            return
+            
+        # 데이터베이스 완전 초기화 (백업 후 모든 데이터 삭제)
+        if args.db_reset:
+            print("⚠️  경고: 데이터베이스가 백업된 후 모든 데이터가 삭제됩니다!")
+            confirm = input("정말로 진행하시겠습니까? (yes/no): ")
+            if confirm.lower() == 'yes':
+                if scheduler.data_manager.reset_database():
+                    print("데이터베이스 완전 초기화 완료")
+                else:
+                    print("데이터베이스 완전 초기화 실패")
+            else:
+                print("완전 초기화가 취소되었습니다.")
+            return
+            
         # 새 게시물 수 조회
         if args.new_posts:
             new_posts_count = scheduler.data_manager.get_new_posts_count(args.new_posts, days=7)
@@ -155,7 +183,14 @@ def main():
                 for i, post in enumerate(latest_posts, 1):
                     print(f"\n{i}. 게시물")
                     print(f"   URL: {post.get('post_url', 'N/A')}")
-                    print(f"   캡션: {post.get('caption', 'N/A')[:100]}...")
+                    
+                    # 캡션이 None이 아닌 경우에만 슬라이싱 적용
+                    caption = post.get('caption')
+                    if caption:
+                        print(f"   캡션: {caption[:100]}...")
+                    else:
+                        print(f"   캡션: N/A")
+                    
                     print(f"   게시시간: {post.get('posted_at', 'N/A')}")
                     print(f"   저장시간: {post.get('created_at', 'N/A')}")
             else:

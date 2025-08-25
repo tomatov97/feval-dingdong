@@ -84,6 +84,12 @@ python main.py --restore backup_file.db
 # 데이터베이스 정보 조회
 python main.py --db-info
 
+# 데이터베이스 초기화 (데이터만 삭제)
+python main.py --db-init
+
+# 데이터베이스 완전 초기화 (백업 후 모든 데이터 삭제)
+python main.py --db-reset
+
 # 새 게시물 수 조회
 python main.py --new-posts username
 
@@ -114,15 +120,24 @@ DEFAULT_ACCOUNTS = [
 `.env` 파일을 생성하여 환경 변수를 설정할 수 있습니다:
 
 ```bash
-# 크롤링 간격 (시간)
+# 인스타그램 로그인 정보 (필수!)
+INSTAGRAM_USERNAME=your_instagram_username
+INSTAGRAM_PASSWORD=your_instagram_password
+
+# 크롤링 설정
 CRAWL_INTERVAL_HOURS=24
-
-# 브라우저 헤드리스 모드
-HEADLESS_MODE=true
-
-# 로그 레벨
+HEADLESS_MODE=false
 LOG_LEVEL=INFO
 ```
+
+### ⚠️ **중요: 로그인 정보 설정**
+
+크롤링을 위해서는 반드시 `.env` 파일에 인스타그램 계정 정보를 설정해야 합니다:
+
+1. 프로젝트 루트에 `.env` 파일 생성
+2. `INSTAGRAM_USERNAME`에 인스타그램 사용자명 입력
+3. `INSTAGRAM_PASSWORD`에 인스타그램 비밀번호 입력
+4. 파일 저장 후 크롤링 실행
 
 ## 데이터베이스 구조
 
@@ -146,6 +161,8 @@ LOG_LEVEL=INFO
 - **백업 기능**: `--backup` 옵션으로 데이터베이스를 백업할 수 있습니다
 - **복원 기능**: `--restore` 옵션으로 백업 파일에서 데이터를 복원할 수 있습니다
 - **데이터 정보**: `--db-info` 옵션으로 데이터베이스 상태를 확인할 수 있습니다
+- **데이터 초기화**: `--db-init` 옵션으로 모든 데이터를 삭제할 수 있습니다
+- **완전 초기화**: `--db-reset` 옵션으로 백업 후 데이터베이스를 완전히 새로 만들 수 있습니다
 
 데이터베이스 파일(`instagram_data.db`)은 프로젝트 폴더에 저장되며, 프로그램을 삭제하지 않는 한 계속 유지됩니다.
 

@@ -441,3 +441,77 @@ class DataManager:
         except Exception as e:
             self.logger.error(f"최신 게시물 조회 실패: {e}")
             return []
+            
+    def initialize_database(self):
+        """
+        데이터베이스 초기화 (데이터만 삭제, 테이블 구조 유지)
+        
+        Returns:
+            bool: 초기화 성공 여부
+        """
+        try:
+            self.logger.info("데이터베이스 초기화 시작")
+            
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # 각 테이블의 데이터만 삭제
+                tables = ['post_data', 'account_data', 'crawl_history']
+                for table in tables:
+                    try:
+                        cursor.execute(f"DELETE FROM {table}")
+                        deleted_count = cursor.rowcount
+                        self.logger.info(f"{table} 테이블에서 {deleted_count}개 레코드 삭제됨")
+                    except Exception as e:
+                        self.logger.warning(f"{table} 테이블 삭제 실패: {e}")
+                
+                # AUTOINCREMENT 값 초기화
+                cursor.execute("DELETE FROM sqlite_sequence")
+                
+                conn.commit()
+                self.logger.info("데이터베이스 초기화 완료")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"데이터베이스 초기화 실패: {e}")
+            return False
+            
+    def reset_database(self):
+        """
+        데이터베이스 완전 초기화 (백업 후 모든 데이터 및 테이블 삭제)
+        
+        Returns:
+            bool: 초기화 성공 여부
+        """
+        try:
+            self.logger.info("데이터베이스 완전 초기화 시작")
+            
+            # 먼저 백업 생성
+            backup_path = self.backup_database()
+            if backup_path:
+                self.logger.info(f"백업 생성 완료: {backup_path}")
+            else:
+                self.logger.warning("백업 생성 실패, 계속 진행")
+            
+            # 데이터베이스 파일 삭제
+            try:
+                import os
+                if os.path.exists(self.db_path):
+                    os.remove(self.db_path)
+                    self.logger.info("기존 데이터베이스 파일 삭제됨")
+            except Exception as e:
+                self.logger.error(f"데이터베이스 파일 삭제 실패: {e}")
+                return False
+            
+            # 새로운 데이터베이스 및 테이블 생성
+            try:
+                self.setup_database()
+                self.logger.info("새 데이터베이스 및 테이블 생성 완료")
+                return True
+            except Exception as e:
+                self.logger.error(f"새 데이터베이스 생성 실패: {e}")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"데이터베이스 완전 초기화 실패: {e}")
+            return False
